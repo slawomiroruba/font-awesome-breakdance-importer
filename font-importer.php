@@ -63,14 +63,15 @@ function zip_importer_page()
                             $icon_directories[] = $dir->getFilename();
                         }
                     }
-
+                    $table_prefix = $wpdb->prefix;
                     foreach ($icon_directories as $icon_set_slug) {
                         $dir = $svgs_path . '/' . $icon_set_slug . '/';
 
                         if (is_dir($dir)) {
-                            // Insert icon set information into wp_breakdance_icon_sets table
+                            
+                            // Insert icon set information into breakdance_icon_sets table
                             $wpdb->insert(
-                                'wp_breakdance_icon_sets',
+                                $table_prefix . 'breakdance_icon_sets',
                                 array(
                                     'slug' => $iconSetName . ' - ' . ucfirst($icon_set_slug),
                                     'name' => $iconSetName . ' - ' . ucfirst($icon_set_slug)
@@ -90,7 +91,7 @@ function zip_importer_page()
                                 );
 
                                 // Insert data into the table
-                                $wpdb->insert('wp_breakdance_icons', $data);
+                                $wpdb->insert($table_prefix . 'breakdance_icons', $data);
                             }
                         } else {
                             echo "<div>Directory $icon_set_slug does not exist.</div>";
