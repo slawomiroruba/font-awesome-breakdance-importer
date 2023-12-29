@@ -42,6 +42,8 @@ function zip_importer_page()
         $file = $_FILES['zip_file'];
         $upload_dir = wp_upload_dir();
         $extract_path = $upload_dir['basedir'] . '/zip-importer/';
+        $iconSetName = sanitize_text_field($_POST['icon_set_name']);
+
         if ($file['type'] == 'application/zip' || $file['type'] == 'application/x-zip-compressed') {
             $zip = new ZipArchive;
             $res = $zip->open($file['tmp_name']);
@@ -66,6 +68,14 @@ function zip_importer_page()
                         $dir = $svgs_path . '/' . $icon_set_slug . '/';
 
                         if (is_dir($dir)) {
+                            // Insert icon set information into wp_breakdance_icon_sets table
+                            $wpdb->insert(
+                                'wp_breakdance_icon_sets',
+                                array(
+                                    'slug' => $iconSetName . ' - ' . ucfirst($icon_set_slug),
+                                    'name' => $iconSetName . ' - ' . ucfirst($icon_set_slug)
+                                )
+                            );
                             $icons = glob($dir . '*.svg');
                             foreach ($icons as $icon) {
                                 $icon_name = basename($icon, '.svg');
@@ -73,7 +83,7 @@ function zip_importer_page()
 
                                 // Prepare data for insertion
                                 $data = array(
-                                    'icon_set_slug' => "FontAwesome 5 Free - " . ucfirst($icon_set_slug),
+                                    'icon_set_slug' => $iconSetName . ' - ' . ucfirst($icon_set_slug),
                                     'name' => $icon_name,
                                     'slug' => sanitize_title($icon_name),
                                     'svg_code' => $svg_code
@@ -111,10 +121,11 @@ function zip_importer_page()
         @rmdir($extract_path);
     }
 
-    // Display upload form
+    // Display upload form with an additional field for the icon set name
     echo '<h2>Zip Importer</h2>';
     echo '<form method="post" enctype="multipart/form-data">';
-    echo '<input type="file" name="zip_file" />';
+    echo 'Icon Set Name: <input type="text" name="icon_set_name" required/><br/>';
+    echo '<input type="file" name="zip_file" required/>';
     echo '<input type="submit" value="Upload and Check" />';
     echo '</form>';
 }
